@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	"net/url"
 	"reflect"
 	"strings"
@@ -123,46 +122,54 @@ func (c TargetConfigReconciler) sync() error {
 }
 
 func (c *TargetConfigReconciler) manageConfigMap(secondaryScheduler *secondaryschedulersv1.SecondaryScheduler) (*v1.ConfigMap, bool, error) {
-	required := resourceread.ReadConfigMapV1OrDie(bindata.MustAsset("assets/secondary-scheduler/configmap.yaml"))
-	required.Name = secondaryScheduler.Name
-	required.Namespace = secondaryScheduler.Namespace
-	required.OwnerReferences = []metav1.OwnerReference{
-		{
-			APIVersion: "v1",
-			Kind:       "SecondaryScheduler",
-			Name:       secondaryScheduler.Name,
-			UID:        secondaryScheduler.UID,
-		},
-	}
+	var required *v1.ConfigMap
+	var yamlFile []byte
+	var err error
 
 	if secondaryScheduler.Spec.SchedulerConfig == secondaryschedulersv1.CustomizedConfig {
-		yamlFile, err := ioutil.ReadFile(SecondarySchedulerCommand[2])
+		required, err = c.kubeClient.CoreV1().ConfigMaps(secondaryScheduler.Namespace).Get(context.TODO(), "customized", metav1.GetOptions{})
+
 		if err != nil {
+			klog.Errorf("Cannot find ConfigMap %s for the secondaryscheduler", secondaryschedulersv1.CustomizedConfig)
 			return nil, false, err
 		}
-		required.Data = map[string]string{"config.yaml": string(yamlFile)}
+
+		klog.Infof("Find ConfigMap %s for the secondaryscheduler.", secondaryScheduler.Spec.SchedulerConfig)
+		yamlFile = []byte(required.Data["config.yaml"])
 	} else {
-		yamlFile := bindata.MustAsset("assets/schedulerconfig/" + string(secondaryScheduler.Spec.SchedulerConfig) + ".yaml")
-
-		// Replace the ${PROM_URL} and ${PROM_TOKEN}
-		promAddress, promToken, err := getPromInfo(c.kubeClient, c.osrClient)
-		if err != nil {
-			fmt.Println(err)
-			return nil, false, err
+		klog.Infof("Load SchedulerConfig %s as the configmap for the secondary-scheduler.", secondaryScheduler.Spec.SchedulerConfig)
+		required = resourceread.ReadConfigMapV1OrDie(bindata.MustAsset("assets/secondary-scheduler/configmap.yaml"))
+		required.Name = secondaryScheduler.Name
+		required.Namespace = secondaryScheduler.Namespace
+		required.OwnerReferences = []metav1.OwnerReference{
+			{
+				APIVersion: "v1",
+				Kind:       "SecondaryScheduler",
+				Name:       secondaryScheduler.Name,
+				UID:        secondaryScheduler.UID,
+			},
 		}
-
-		promInfo := map[string]string{
-			"${PROM_URL}":   promAddress,
-			"${PROM_TOKEN}": promToken,
-		}
-
-		for promKey, promVal := range promInfo {
-			tmp := bytes.Replace(yamlFile, []byte(promKey), []byte(promVal), -1)
-			yamlFile = tmp
-		}
-
-		required.Data = map[string]string{"config.yaml": string(yamlFile)}
+		yamlFile = bindata.MustAsset("assets/schedulerconfig/" + string(secondaryScheduler.Spec.SchedulerConfig) + ".yaml")
 	}
+
+	// Replace the ${PROM_URL} and ${PROM_TOKEN}
+	promAddress, promToken, err := getPromInfo(c.kubeClient, c.osrClient)
+	if err != nil {
+		fmt.Println(err)
+		return nil, false, err
+	}
+
+	promInfo := map[string]string{
+		"${PROM_URL}":   promAddress,
+		"${PROM_TOKEN}": promToken,
+	}
+
+	for promKey, promVal := range promInfo {
+		tmp := bytes.Replace(yamlFile, []byte(promKey), []byte(promVal), -1)
+		yamlFile = tmp
+	}
+
+	required.Data = map[string]string{"config.yaml": string(yamlFile)}
 
 	return resourceapply.ApplyConfigMap(c.kubeClient.CoreV1(), c.eventRecorder, required)
 }

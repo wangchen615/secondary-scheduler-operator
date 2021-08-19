@@ -5,4 +5,4 @@ metadata:
   namespace: openshift-secondary-scheduler-operator
 spec:
   managementState: Managed
-  schedulerConfig: TargetLoadPacking
+  schedulerConfig: CustomizedConfig
