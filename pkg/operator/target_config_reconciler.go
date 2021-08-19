@@ -18,11 +18,11 @@ import (
 	"github.com/openshift/library-go/pkg/operator/resource/resourcemerge"
 	"github.com/openshift/library-go/pkg/operator/resource/resourceread"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
-	secondaryschedulersv1 "secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
-	operatorconfigclientv1 "secondary-scheduler-operator/pkg/generated/clientset/versioned/typed/secondaryscheduler/v1"
-	operatorclientinformers "secondary-scheduler-operator/pkg/generated/informers/externalversions/secondaryscheduler/v1"
-	"secondary-scheduler-operator/pkg/operator/operatorclient"
-	"secondary-scheduler-operator/pkg/operator/v410_00_assets"
+	"github.com/openshift/secondary-scheduler-operator/bindata"
+	secondaryschedulersv1 "github.com/openshift/secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
+	operatorconfigclientv1 "github.com/openshift/secondary-scheduler-operator/pkg/generated/clientset/versioned/typed/secondaryscheduler/v1"
+	operatorclientinformers "github.com/openshift/secondary-scheduler-operator/pkg/generated/informers/externalversions/secondaryscheduler/v1"
+	"github.com/openshift/secondary-scheduler-operator/pkg/operator/operatorclient"
 
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -60,7 +60,6 @@ type TargetConfigReconciler struct {
 	dynamicClient            dynamic.Interface
 	eventRecorder            events.Recorder
 	queue                    workqueue.RateLimitingInterface
-	excludedNamespaces       []string
 }
 
 func NewTargetConfigReconciler(
@@ -74,19 +73,6 @@ func NewTargetConfigReconciler(
 	dynamicClient dynamic.Interface,
 	eventRecorder events.Recorder,
 ) *TargetConfigReconciler {
-	// make sure our list of excluded system namespaces is up to date
-	allNamespaces, err := kubeClient.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
-	if err != nil {
-		klog.ErrorS(err, "error listing namespaces")
-		return nil
-	}
-	excludedNamespaces := []string{"kube-system"}
-	for _, ns := range allNamespaces.Items {
-		if strings.HasPrefix(ns.Name, "openshift-") {
-			excludedNamespaces = append(excludedNamespaces, ns.Name)
-		}
-	}
-
 	c := &TargetConfigReconciler{
 		ctx:                      ctx,
 		operatorClient:           operatorConfigClient,
@@ -96,7 +82,6 @@ func NewTargetConfigReconciler(
 		dynamicClient:            dynamicClient,
 		eventRecorder:            eventRecorder,
 		queue:                    workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "TargetConfigReconciler"),
-		excludedNamespaces:       excludedNamespaces,
 		targetImagePullSpec:      targetImagePullSpec,
 	}
 	operatorClientInformer.Informer().AddEventHandler(c.eventHandler())
@@ -117,9 +102,9 @@ func (c TargetConfigReconciler) sync() error {
 		return err
 	}
 
-	// if _, _, err := c.manageServiceAccount(secondaryScheduler); err != nil {
-	// 	return err
-	// }
+	if _, _, err := c.manageServiceAccount(secondaryScheduler); err != nil {
+	 	return err
+	}
 
 	if _, _, err := c.manageClusterRoleBinding(secondaryScheduler); err != nil {
 		return err
@@ -138,7 +123,7 @@ func (c TargetConfigReconciler) sync() error {
 }
 
 func (c *TargetConfigReconciler) manageConfigMap(secondaryScheduler *secondaryschedulersv1.SecondaryScheduler) (*v1.ConfigMap, bool, error) {
-	required := resourceread.ReadConfigMapV1OrDie(v410_00_assets.MustAsset("v4.1.0/secondary-scheduler/configmap.yaml"))
+	required := resourceread.ReadConfigMapV1OrDie(bindata.MustAsset("assets/secondary-scheduler/configmap.yaml"))
 	required.Name = secondaryScheduler.Name
 	required.Namespace = secondaryScheduler.Namespace
 	required.OwnerReferences = []metav1.OwnerReference{
@@ -157,7 +142,7 @@ func (c *TargetConfigReconciler) manageConfigMap(secondaryScheduler *secondarysc
 		}
 		required.Data = map[string]string{"config.yaml": string(yamlFile)}
 	} else {
-		yamlFile := v410_00_assets.MustAsset("v4.1.0/schedulerconfig/" + string(secondaryScheduler.Spec.SchedulerConfig) + ".yaml")
+		yamlFile := bindata.MustAsset("assets/schedulerconfig/" + string(secondaryScheduler.Spec.SchedulerConfig) + ".yaml")
 
 		// Replace the ${PROM_URL} and ${PROM_TOKEN}
 		promAddress, promToken, err := getPromInfo(c.kubeClient, c.osrClient)
@@ -218,7 +203,7 @@ func getPromInfo(kClient kubernetes.Interface, osrClient openshiftrouteclientset
 }
 
 func (c *TargetConfigReconciler) manageServiceAccount(secondaryScheduler *secondaryschedulersv1.SecondaryScheduler) (*v1.ServiceAccount, bool, error) {
-	required := resourceread.ReadServiceAccountV1OrDie(v410_00_assets.MustAsset("v4.1.0/secondary-scheduler/serviceaccount.yaml"))
+	required := resourceread.ReadServiceAccountV1OrDie(bindata.MustAsset("assets/secondary-scheduler/serviceaccount.yaml"))
 	required.Namespace = secondaryScheduler.Namespace
 	required.OwnerReferences = []metav1.OwnerReference{
 		{
@@ -233,7 +218,7 @@ func (c *TargetConfigReconciler) manageServiceAccount(secondaryScheduler *second
 }
 
 func (c *TargetConfigReconciler) manageClusterRoleBinding(secondaryScheduler *secondaryschedulersv1.SecondaryScheduler) (*rbacv1.ClusterRoleBinding, bool, error) {
-	required := resourceread.ReadClusterRoleBindingV1OrDie(v410_00_assets.MustAsset("v4.1.0/secondary-scheduler/clusterrolebinding.yaml"))
+	required := resourceread.ReadClusterRoleBindingV1OrDie(bindata.MustAsset("assets/secondary-scheduler/clusterrolebinding.yaml"))
 	required.Namespace = secondaryScheduler.Namespace
 	required.OwnerReferences = []metav1.OwnerReference{
 		{
@@ -248,7 +233,7 @@ func (c *TargetConfigReconciler) manageClusterRoleBinding(secondaryScheduler *se
 }
 
 func (c *TargetConfigReconciler) manageDeployment(secondaryScheduler *secondaryschedulersv1.SecondaryScheduler, forceDeployment bool) (*appsv1.Deployment, bool, error) {
-	required := resourceread.ReadDeploymentV1OrDie(v410_00_assets.MustAsset("v4.1.0/secondary-scheduler/deployment.yaml"))
+	required := resourceread.ReadDeploymentV1OrDie(bindata.MustAsset("assets/secondary-scheduler/deployment.yaml"))
 	required.Name = secondaryScheduler.Name
 	required.Namespace = secondaryScheduler.Namespace
 	required.OwnerReferences = []metav1.OwnerReference{

@@ -20,7 +20,7 @@ package externalversions
 
 import (
 	"fmt"
-	v1 "secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
+	v1 "github.com/openshift/secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
 
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"

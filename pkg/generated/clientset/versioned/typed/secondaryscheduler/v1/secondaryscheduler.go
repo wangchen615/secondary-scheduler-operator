@@ -20,8 +20,8 @@ package v1
 
 import (
 	"context"
-	v1 "secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
-	scheme "secondary-scheduler-operator/pkg/generated/clientset/versioned/scheme"
+	v1 "github.com/openshift/secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
+	scheme "github.com/openshift/secondary-scheduler-operator/pkg/generated/clientset/versioned/scheme"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

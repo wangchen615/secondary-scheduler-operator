@@ -33,5 +33,5 @@ spec:
               value: "secondary-scheduler-operator"
             - name: IMAGE
               value: k8s.gcr.io/scheduler-plugins/kube-scheduler:v0.19.9
-      serviceAccountName: secondary-scheduler
-      serviceAccount: secondary-scheduler
+      serviceAccountName: secondary-scheduler-operator
+      serviceAccount: secondary-scheduler-operator

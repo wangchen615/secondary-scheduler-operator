@@ -3,11 +3,11 @@ kind: ImageStream
 apiVersion: image.openshift.io/v1
 spec:
   tags:
-  - name: cluster-kube-descheduler-operator
+  - name: secondary-scheduler-operator
     from:
       kind: DockerImage
-      name: quay.io/openshift/origin-cluster-kube-descheduler-operator:4.8
-  - name: descheduler
+      name: quay.io/openshift/secondary-scheduler-operator:4.8
+  - name: secondaryscheduler
     from:
       kind: DockerImage
-      name: quay.io/openshift/origin-descheduler:4.8
+      name: k8s.gcr.io/scheduler-plugins/kube-scheduler:v0.19.9

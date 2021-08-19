@@ -19,7 +19,7 @@ limitations under the License.
 package scheme
 
 import (
-	secondaryschedulersv1 "secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
+	secondaryschedulersv1 "github.com/openshift/secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

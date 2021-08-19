@@ -4,10 +4,10 @@ import (
 	"context"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
+	operatorconfigclientv1 "github.com/openshift/secondary-scheduler-operator/pkg/generated/clientset/versioned/typed/secondaryscheduler/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
-	operatorconfigclientv1 "secondary-scheduler-operator/pkg/generated/clientset/versioned/typed/secondaryscheduler/v1"
 )
 
 const OperatorNamespace = "openshift-secondary-scheduler-operator"

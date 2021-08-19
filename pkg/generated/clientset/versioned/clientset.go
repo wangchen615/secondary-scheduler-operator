@@ -20,7 +20,8 @@ package versioned
 
 import (
 	"fmt"
-	secondaryschedulersv1 "secondary-scheduler-operator/pkg/generated/clientset/versioned/typed/secondaryscheduler/v1"
+
+	secondaryschedulersv1 "github.com/openshift/secondary-scheduler-operator/pkg/generated/clientset/versioned/typed/secondaryscheduler/v1"
 
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"

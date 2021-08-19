@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
-	"secondary-scheduler-operator/pkg/operator"
-	"secondary-scheduler-operator/pkg/version"
+	"github.com/openshift/secondary-scheduler-operator/pkg/operator"
+	"github.com/openshift/secondary-scheduler-operator/pkg/version"
 )
 
 func NewOperator() *cobra.Command {

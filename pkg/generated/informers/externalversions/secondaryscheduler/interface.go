@@ -19,8 +19,8 @@ limitations under the License.
 package secondaryscheduler
 
 import (
-	internalinterfaces "secondary-scheduler-operator/pkg/generated/informers/externalversions/internalinterfaces"
-	v1 "secondary-scheduler-operator/pkg/generated/informers/externalversions/secondaryscheduler/v1"
+	internalinterfaces "github.com/openshift/secondary-scheduler-operator/pkg/generated/informers/externalversions/internalinterfaces"
+	v1 "github.com/openshift/secondary-scheduler-operator/pkg/generated/informers/externalversions/secondaryscheduler/v1"
 )
 
 // Interface provides access to each of this group's versions.

@@ -20,11 +20,12 @@ package v1
 
 import (
 	"context"
-	secondaryschedulerv1 "secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
-	versioned "secondary-scheduler-operator/pkg/generated/clientset/versioned"
-	internalinterfaces "secondary-scheduler-operator/pkg/generated/informers/externalversions/internalinterfaces"
-	v1 "secondary-scheduler-operator/pkg/generated/listers/secondaryscheduler/v1"
 	time "time"
+
+	secondaryschedulerv1 "github.com/openshift/secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
+	versioned "github.com/openshift/secondary-scheduler-operator/pkg/generated/clientset/versioned"
+	internalinterfaces "github.com/openshift/secondary-scheduler-operator/pkg/generated/informers/externalversions/internalinterfaces"
+	v1 "github.com/openshift/secondary-scheduler-operator/pkg/generated/listers/secondaryscheduler/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

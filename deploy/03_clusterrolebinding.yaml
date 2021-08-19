@@ -4,7 +4,7 @@ metadata:
   name: secondary-scheduler-role-binding
 subjects:
 - kind: ServiceAccount
-  name: secondary-scheduler
+  name: secondary-scheduler-operator
   namespace: openshift-secondary-scheduler-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io

@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"secondary-scheduler-operator/pkg/cmd/operator"
+	"github.com/openshift/secondary-scheduler-operator/pkg/cmd/operator"
 )
 
 func main() {

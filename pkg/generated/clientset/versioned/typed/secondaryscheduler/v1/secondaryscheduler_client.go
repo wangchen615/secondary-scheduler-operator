@@ -19,8 +19,8 @@ limitations under the License.
 package v1
 
 import (
-	v1 "secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
-	"secondary-scheduler-operator/pkg/generated/clientset/versioned/scheme"
+	v1 "github.com/openshift/secondary-scheduler-operator/pkg/apis/secondaryscheduler/v1"
+	"github.com/openshift/secondary-scheduler-operator/pkg/generated/clientset/versioned/scheme"
 
 	rest "k8s.io/client-go/rest"
 )

@@ -14,9 +14,9 @@ import (
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
 	"github.com/openshift/library-go/pkg/operator/loglevel"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
-	operatorconfigclient "secondary-scheduler-operator/pkg/generated/clientset/versioned"
-	operatorclientinformers "secondary-scheduler-operator/pkg/generated/informers/externalversions"
-	"secondary-scheduler-operator/pkg/operator/operatorclient"
+	operatorconfigclient "github.com/openshift/secondary-scheduler-operator/pkg/generated/clientset/versioned"
+	operatorclientinformers "github.com/openshift/secondary-scheduler-operator/pkg/generated/informers/externalversions"
+	"github.com/openshift/secondary-scheduler-operator/pkg/operator/operatorclient"
 )
 
 const (
