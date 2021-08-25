@@ -34,22 +34,8 @@ type SecondarySchedulerSpec struct {
 
 // SecondarySchedulerProfile allows configuring the enabled strategy profiles for the secondary scheduler
 // it allows one profile to be enabled at once.
-// +kubebuilder:validation:Enum=TargetLoadPacking;LoadVariationRiskBalancing;CustomizedConfig;
+// +kubebuilder:default=customized;
 type SecondarySchedulerConfig string
-
-var (
-	// TargetLoadPacking enables load aware scheduling strategy that targets to pack load on nodes that all achieve
-	// a specified utilization.
-	TargetLoadPacking SecondarySchedulerConfig = "TargetLoadPacking"
-
-	// LoadVariationRiskBalancing enables load aware scheduling strategy that balances the risks
-	// of overloading on all nodes.
-	LoadVariationRiskBalancing SecondarySchedulerConfig = "LoadVariationRiskBalancing"
-
-	// CustomizedProfile allows users to define their own KubeSchedulerConfiguration file for schedulers that
-	// are developed using the scheduler-plugin framework.
-	CustomizedConfig SecondarySchedulerConfig = "CustomizedConfig"
-)
 
 // SecondarySchedulerStatus defines the observed state of SecondaryScheduler
 type SecondarySchedulerStatus struct {

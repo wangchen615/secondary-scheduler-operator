@@ -47,7 +47,7 @@ const (
 
 // secondarySchedulerCommand provides the scheduler command with configfile mounted as volume and log-level for backwards
 // compatibility with 3.11
-var SecondarySchedulerCommand = []string{"/bin/kube-scheduler", "--config", "/etc/kubernetes/config.yaml", "--v", "2"}
+var secondarySchedulerConfigMap = "secondary-scheduler"
 
 type TargetConfigReconciler struct {
 	ctx                      context.Context
@@ -126,31 +126,16 @@ func (c *TargetConfigReconciler) manageConfigMap(secondaryScheduler *secondarysc
 	var yamlFile []byte
 	var err error
 
-	if secondaryScheduler.Spec.SchedulerConfig == secondaryschedulersv1.CustomizedConfig {
-		required, err = c.kubeClient.CoreV1().ConfigMaps(secondaryScheduler.Namespace).Get(context.TODO(), "customized", metav1.GetOptions{})
+	required, err = c.kubeClient.CoreV1().ConfigMaps(secondaryScheduler.Namespace).Get(context.TODO(), string(secondaryScheduler.Spec.SchedulerConfig), metav1.GetOptions{})
 
-		if err != nil {
-			klog.Errorf("Cannot find ConfigMap %s for the secondaryscheduler", secondaryschedulersv1.CustomizedConfig)
-			return nil, false, err
-		}
-
-		klog.Infof("Find ConfigMap %s for the secondaryscheduler.", secondaryScheduler.Spec.SchedulerConfig)
-		yamlFile = []byte(required.Data["config.yaml"])
-	} else {
-		klog.Infof("Load SchedulerConfig %s as the configmap for the secondary-scheduler.", secondaryScheduler.Spec.SchedulerConfig)
-		required = resourceread.ReadConfigMapV1OrDie(bindata.MustAsset("assets/secondary-scheduler/configmap.yaml"))
-		required.Name = secondaryScheduler.Name
-		required.Namespace = secondaryScheduler.Namespace
-		required.OwnerReferences = []metav1.OwnerReference{
-			{
-				APIVersion: "v1",
-				Kind:       "SecondaryScheduler",
-				Name:       secondaryScheduler.Name,
-				UID:        secondaryScheduler.UID,
-			},
-		}
-		yamlFile = bindata.MustAsset("assets/schedulerconfig/" + string(secondaryScheduler.Spec.SchedulerConfig) + ".yaml")
+	if err != nil {
+		klog.Errorf("Cannot load ConfigMap %s for the secondaryscheduler", string(secondaryScheduler.Spec.SchedulerConfig))
+		return nil, false, err
 	}
+
+	secondarySchedulerConfigMap = string(secondaryScheduler.Spec.SchedulerConfig)
+	klog.Infof("Find ConfigMap %s for the secondaryscheduler.", secondaryScheduler.Spec.SchedulerConfig)
+	yamlFile = []byte(required.Data["config.yaml"])
 
 	// Replace the ${PROM_URL} and ${PROM_TOKEN}
 	promAddress, promToken, err := getPromInfo(c.kubeClient, c.osrClient)
@@ -259,6 +244,19 @@ func (c *TargetConfigReconciler) manageDeployment(secondaryScheduler *secondarys
 		for pat, img := range images {
 			if required.Spec.Template.Spec.Containers[i].Image == pat {
 				required.Spec.Template.Spec.Containers[i].Image = img
+				break
+			}
+		}
+	}
+
+	configmaps := map[string]string{
+		"${CONFIGMAP}": secondarySchedulerConfigMap,
+	}
+
+	for i := range required.Spec.Template.Spec.Volumes {
+		for pat, configmap := range configmaps {
+			if required.Spec.Template.Spec.Volumes[i].ConfigMap.Name == pat {
+				required.Spec.Template.Spec.Volumes[i].ConfigMap.Name = configmap
 				break
 			}
 		}

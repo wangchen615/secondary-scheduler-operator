@@ -19,7 +19,7 @@ spec:
       volumes:
         - name: "config-volume"
           configMap:
-            name: "secondary-scheduler"
+            name: ${CONFIGMAP}
       containers:
         - name: "secondary-scheduler"
           image: ${IMAGE}
